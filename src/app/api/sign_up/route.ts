@@ -7,7 +7,9 @@ export async function POST(request: Request) {
   await dbConnect();
 
   try {
+    // Extract user data from request body
     const { username, email, password } = await request.json();
+    // Check for existing verified user with same username
     const existingUserVerifiedByUserName = await UserModel.findOne({
       username,
       isVerified: true,
@@ -22,12 +24,13 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
+    // Check for existing user with same email
     const existingUserByEmail = await UserModel.findOne({
       email,
     });
     const verifyCode = Math.floor(10000 + Math.random() * 900000).toString();
 
+    // Handle existing user with unverified email
     if (existingUserByEmail) {
       if (existingUserByEmail.isVeryfied) {
         return Response.json(
@@ -38,6 +41,7 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       } else {
+        // Update existing user with new password and verification details
         const hasedPassword = await bcrypt.hash(password, 10);
         existingUserByEmail.password = hasedPassword;
         existingUserByEmail.verifyCode = verifyCode;
@@ -45,6 +49,7 @@ export async function POST(request: Request) {
         await existingUserByEmail.save();
       }
     } else {
+      // Create a new user
       const hasedPassword = await bcrypt.hash(password, 10);
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
@@ -78,6 +83,7 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+    // Respond with success message
     return Response.json(
       {
         success: true,
