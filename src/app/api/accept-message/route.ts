@@ -3,12 +3,15 @@ import UserModel from "@/model/user.model";
 import { getServerSession, User } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/options";
 
+// Update user's message acceptance status
 export async function POST(request: Request) {
   await dbConnect();
 
+  // Get user session data
   const session = await getServerSession(authOptions);
-  const user: User = session?.user as User;
+  const user: User = session?.user as User; // User can be undefined if not authenticated
 
+  // Check for authentication
   if (!session || !session.user) {
     return Response.json(
       {
@@ -21,15 +24,19 @@ export async function POST(request: Request) {
     );
   }
 
+  // Extract user ID from session
   const userId = user._id;
+  // Extract data from request body
   const { acceptMessages } = await request.json();
 
   try {
+    // Update user document with new message acceptance status
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId,
       { isAcceptingMessege: acceptMessages },
-      { new: true }
+      { new: true } // Return the updated document
     );
+    // Handle unsuccessful update
     if (!updatedUser) {
       return Response.json(
         {
@@ -39,6 +46,7 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+    // Respond with success message
     return Response.json(
       {
         success: true,
@@ -58,12 +66,15 @@ export async function POST(request: Request) {
   }
 }
 
+// Get user's message acceptance status
 export async function GET(request: Request) {
   await dbConnect();
 
+  // Get user session data
   const session = await getServerSession(authOptions);
   const user: User = session?.user as User;
 
+  // Check for authentication
   if (!session || !session.user) {
     return Response.json(
       {
@@ -78,7 +89,9 @@ export async function GET(request: Request) {
 
   const userId = user._id;
   try {
+    // Find user document by ID
     const foundUser = await UserModel.findById(userId);
+    // Handle user not found
     if (!foundUser) {
       return Response.json(
         {
@@ -88,6 +101,7 @@ export async function GET(request: Request) {
         { status: 401 }
       );
     }
+    // Respond with user's message acceptance status
     return Response.json(
       {
         success: true,
