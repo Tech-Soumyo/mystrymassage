@@ -121,6 +121,7 @@ const page = () => {
                       }}
                     />
                   </FormControl>
+                  {/* loader for checking uniqueness of username  */}
                   {isCheckingUserName && <Loader2 className="animate-spin" />}
                   {!isCheckingUserName && userNameMessage && (
                     <p
